@@ -9,13 +9,15 @@ def parse_payments(payments):
         } for p in payments
     ]
 
-def parse_invoices(invoices):
-    return [
-        {
-            "type": "Expected",
-            "customer": i.get("customer_name"),
-            "amount": i.get("total"),
-            "date": i.get("due_date"),
-            "invoice": i.get("invoice_number")
-        } for i in invoices
-    ]
+def parse_invoices(data):
+    expected = []
+    for invoice in data:
+        if invoice.get("status") not in ["paid", "void"]:
+            expected.append({
+                "type": "Expected",
+                "customer": invoice.get("customer_name"),
+                "amount": invoice.get("total"),
+                "date": invoice.get("due_date"),
+                "invoice": invoice.get("invoice_number")
+            })
+    return expected

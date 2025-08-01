@@ -1,27 +1,42 @@
 import streamlit as st
+import pandas as pd
+from dashboard import show_inflows
 from fetch_payments import fetch_customer_payments
 from fetch_invoices import fetch_expected_invoices
 from process import parse_payments, parse_invoices
-from dashboard import show_inflows
 
-def main():
-    st.set_page_config(page_title="Cash Inflow Tracker")
+# Dictionary mapping company names to their org IDs
+companies = {
+    "ADS Management": "737426804",
+    "Thirlmere": "793967859"
+}
 
-    # Step 1: Get raw data
-    raw_actual = fetch_customer_payments()
-    raw_expected = fetch_expected_invoices()
+# Set page title and layout
+st.set_page_config(page_title="Multi-Company Inflow Tracker", layout="wide")
 
-    # Step 2: Parse it
-    actual = parse_payments(raw_actual)
-    expected = parse_invoices(raw_expected)
+st.title("📊 Company-wise Cash Inflow Tracker")
 
-    # Step 4: Check if data exists
-    if not actual and not expected:
-        st.error("❌ 'date' column is missing. No data was returned from Zoho APIs.")
-        return
+# Create tabs for each company
+tabs = st.tabs(list(companies.keys()))
 
-    # Step 5: Show dashboard
-    show_inflows(actual, expected)
+for i, company_name in enumerate(companies.keys()):
+    with tabs[i]:
+        st.header(f"💼 {company_name}")
+        
+        # Get current company's org ID
+        org_id = companies[company_name]
 
-if __name__ == "__main__":
-    main()
+        try:
+            # Fetch and parse actual inflows
+            payments_data = fetch_customer_payments(org_id)
+            actual = parse_payments(payments_data)
+
+            # Fetch and parse expected inflows
+            invoices_data = fetch_expected_invoices(org_id)
+            expected = parse_invoices(invoices_data)
+
+            # Show dashboard
+            show_inflows(actual, expected)
+
+        except Exception as e:
+            st.error(f"❌ Failed to load data for {company_name}: {e}")

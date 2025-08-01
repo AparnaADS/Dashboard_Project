@@ -16,3 +16,4 @@ def show_inflows(actual, expected):
 
     st.title("💸 Cash Inflow Tracker")
     st.dataframe(df)
+
